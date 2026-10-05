@@ -1,0 +1,74 @@
+.app {
+    margin: 40px;
+    box-shadow: 0px 8px 40px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    margin-left: 48px;
+    margin-right: 48px;
+    margin-top: 22.5px;
+    margin-bottom: 22.5px;
+    height: calc(100vh - 80px);
+    display: flex;
+    gap: 1px;
+    flex-direction: column;
+    border-radius: 30px;
+    overflow: hidden;
+}
+
+nav {
+    background-color: #fff9d9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 48px;
+    padding-right: 48px;
+    padding-top: 22.5px;
+    padding-bottom: 22.5px;
+}
+
+#quicklinks {
+    display: flex;
+    gap: 36px;
+    font-size: 15px;
+    color: #555555;
+}
+
+#toolbar {
+    display: flex;
+    gap: 16px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#toolbar li {
+    background-color: white;
+    padding-right: 22px;
+    padding-left: 22px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 19px;
+}
+
+main {
+    background-color: #fff9d9;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 70px;
+    padding: 72px;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    justify-content: center;
+}
+
+button {
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    border-radius: 28px;
+}
