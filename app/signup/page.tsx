@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import "./page.css";
+import "../login/page.css";
 
-export default function Login() {
+export default function Signup() {
+    const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [rememberMe, setRememberMe] = useState(false);
+    const [agreeTerms, setAgreeTerms] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -16,18 +17,24 @@ export default function Login() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+
+        if (!agreeTerms) {
+            setError("Please accept the Terms and conditions to proceed");
+            return;
+        }
+
         setLoading(true);
 
         try {
-            const res = await fetch("/api/auth/login", {
+            const res = await fetch("/api/auth/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password, rememberMe }),
+                body: JSON.stringify({ fullName, email, password }),
             });
 
             const data = await res.json();
             if (!res.ok) {
-                setError(data.error || "Login failed");
+                setError(data.error || "Signup failed");
             } else {
                 router.push("/");
                 router.refresh();
@@ -43,8 +50,8 @@ export default function Login() {
         <main>
             <div className="fo">
                 <p style={{ fontWeight: "bold", fontSize: "24px", margin: "0 0 10px 0" }}>Muncho</p>
-                <p style={{ fontSize: "20px", fontWeight: 600, margin: "0 0 6px 0" }}>Welcome back!</p>
-                <p style={{ color: "#666", marginBottom: "20px" }}>Login to continue ordering delicious food.</p>
+                <p style={{ fontSize: "20px", fontWeight: 600, margin: "0 0 6px 0" }}>Create an account</p>
+                <p style={{ color: "#666", marginBottom: "20px" }}>Sign up to start ordering delicious food.</p>
 
                 {error && (
                     <div style={{ color: "#e11d48", backgroundColor: "#ffe4e6", padding: "10px 14px", borderRadius: "8px", marginBottom: "16px", fontSize: "14px" }}>
@@ -53,6 +60,27 @@ export default function Login() {
                 )}
 
                 <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px", minWidth: "280px" }}>
+                    <div>
+                        <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#1F2523", marginBottom: "6px" }}>
+                            Full Name
+                        </label>
+                        <input
+                            type="text"
+                            required
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            placeholder="Enter your full name"
+                            style={{
+                                width: "100%",
+                                padding: "12px",
+                                borderRadius: "8px",
+                                border: "1px solid #ccc",
+                                fontSize: "14px",
+                                boxSizing: "border-box"
+                            }}
+                        />
+                    </div>
+
                     <div>
                         <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#1F2523", marginBottom: "6px" }}>
                             Email
@@ -83,7 +111,7 @@ export default function Login() {
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter your password"
+                            placeholder="Create a password"
                             style={{
                                 width: "100%",
                                 padding: "12px",
@@ -98,13 +126,13 @@ export default function Login() {
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <input
                             type="checkbox"
-                            id="rememberMe"
-                            checked={rememberMe}
-                            onChange={(e) => setRememberMe(e.target.checked)}
+                            id="terms"
+                            checked={agreeTerms}
+                            onChange={(e) => setAgreeTerms(e.target.checked)}
                             style={{ width: "16px", height: "16px", cursor: "pointer", accentColor: "#FF9E4F" }}
                         />
-                        <label htmlFor="rememberMe" style={{ fontSize: "13px", color: "#444", cursor: "pointer" }}>
-                            Remember me
+                        <label htmlFor="terms" style={{ fontSize: "13px", color: "#444", cursor: "pointer" }}>
+                            Terms and conditions
                         </label>
                     </div>
 
@@ -122,20 +150,20 @@ export default function Login() {
                             cursor: loading ? "not-allowed" : "pointer"
                         }}
                     >
-                        {loading ? "Logging in..." : "Log In"}
+                        {loading ? "Signing up..." : "Sign Up"}
                     </button>
 
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", marginTop: "12px", fontSize: "14px" }}>
-                        <span style={{ color: "#666" }}>Don't have an account?</span>
+                        <span style={{ color: "#666" }}>Already have an account?</span>
                         <Link
-                            href="/signup"
+                            href="/login"
                             style={{
                                 color: "#FF9E4F",
                                 fontWeight: 600,
                                 textDecoration: "none"
                             }}
                         >
-                            Sign up instead
+                            Log in instead
                         </Link>
                     </div>
                 </form>
