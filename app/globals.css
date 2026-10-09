@@ -11,15 +11,3 @@
 body {
   background-color: #fcf6d6;
 }
-
-a:link,
-a:visited,
-a:hover,
-a:active {
-  text-decoration: none;
-}
-
-button {
-  all: unset;
-  cursor: pointer;
-}
