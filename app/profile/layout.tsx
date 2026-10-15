@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import Navbar from "../components/Navbar";
@@ -17,6 +19,7 @@ export default function ProfileLayout({
                     <li><Link href="/profile/favourites">Favourites</Link></li>
                     <li><Link href="/profile/payments">Payments</Link></li>
                     <li><Link href="/profile/addresses">Addresses</Link></li>
+                    <li><Link href="/profile/restaurants">My Restaurants</Link></li>
                 </ul>
                 <div className="profile-content">{children}</div>
             </main>
