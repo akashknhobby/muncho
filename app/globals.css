@@ -1,13 +1,179 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
+@import "leaflet/dist/leaflet.css";
 
 * {
   padding: 0px;
   margin: 0px;
   box-sizing: border-box;
-  background-color: none;
   font-family: "Inter", sans-serif;
 }
 
+html {
+  min-width: 320px;
+}
+
 body {
-  background-color: #fcf6d6;
+  min-height: 100vh;
+  background: #fcf6d6;
+  color: #1a1a1a;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(255, 158, 79, 0.45);
+  outline-offset: 2px;
+}
+
+.app {
+  width: min(100% - 48px, 1440px);
+  height: calc(100vh - 48px);
+  min-height: 560px;
+  margin: 24px auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(228, 119, 39, 0.12);
+  border-radius: 30px;
+  background: #fff9d9;
+  box-shadow: 0 20px 60px rgba(115, 79, 31, 0.14);
+}
+
+.site-nav {
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px clamp(20px, 4vw, 52px);
+  border-bottom: 1px solid rgba(228, 119, 39, 0.1);
+  background: rgba(255, 249, 217, 0.96);
+}
+
+#logo {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: 23px;
+  letter-spacing: -0.04em;
+}
+
+#quicklinks,
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2.5vw, 32px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#quicklinks a,
+#toolbar a {
+  color: #514b3b;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+#quicklinks a:hover,
+#toolbar a:hover {
+  color: #e47727;
+}
+
+#toolbar {
+  gap: 10px;
+}
+
+#toolbar > li {
+  padding: 9px 14px;
+  border-radius: 20px;
+}
+
+#toolbar .search-nav-item {
+  padding: 10px;
+  background: #fff;
+}
+
+#toolbar .search-nav-item img {
+  display: block;
+  width: 17px;
+  height: 17px;
+}
+
+#toolbar .order-nav-item {
+  background: #ff9e4f;
+  box-shadow: 0 5px 12px rgba(228, 119, 39, 0.2);
+}
+
+#toolbar .order-nav-item a {
+  color: #fff;
+}
+
+.account-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+}
+
+.account-nav-item a {
+  color: #1a1a1a !important;
+}
+
+.logout-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #8a806b;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  color: #e47727;
+}
+
+@media (max-width: 760px) {
+  .app {
+    width: 100%;
+    height: 100vh;
+    min-height: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .site-nav {
+    flex-wrap: wrap;
+    padding: 16px 20px;
+  }
+
+  #quicklinks {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 4px;
+  }
+
+  #toolbar {
+    margin-left: auto;
+  }
+
+  #toolbar .account-nav-item {
+    max-width: 125px;
+  }
+
+  .account-nav-item a span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
