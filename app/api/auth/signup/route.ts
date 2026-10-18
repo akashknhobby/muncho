@@ -90,10 +90,10 @@ export async function POST(request: Request) {
         });
 
         return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Signup error:", error);
         return NextResponse.json(
-            { error: error?.message || "Internal server error" },
+            { error: "Unable to sign up right now. Please try again." },
             { status: 500 }
         );
     }

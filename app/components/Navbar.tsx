@@ -1,48 +1,70 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { clearLegacyCart } from "../cart/cart-storage";
+import { isAuthChangeEvent, notifyAuthChanged } from "../../lib/auth-events";
 
 export default function Navbar() {
     const [user, setUser] = useState<{ fullName: string; email: string } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [authError, setAuthError] = useState("");
     const router = useRouter();
 
     useEffect(() => {
+        const reloadAfterAccountChange = (event: StorageEvent) => {
+            if (isAuthChangeEvent(event)) window.location.reload();
+        };
+        window.addEventListener("storage", reloadAfterAccountChange);
         fetch("/api/auth/me")
-            .then((res) => res.json())
+            .then((res) => {
+                if (!res.ok) throw new Error("Unable to check your login status.");
+                return res.json();
+            })
             .then((data) => {
                 if (data?.user) {
                     setUser(data.user);
                 }
             })
-            .catch(() => {})
+            .catch((reason: unknown) => {
+                console.error("Unable to load the current user:", reason);
+                setAuthError("Your login status could not be checked.");
+            })
             .finally(() => setLoading(false));
+        return () => window.removeEventListener("storage", reloadAfterAccountChange);
     }, []);
 
     const handleLogout = async () => {
-        await fetch("/api/auth/logout", { method: "POST" });
-        setUser(null);
-        router.push("/");
-        router.refresh();
+        setAuthError("");
+        try {
+            const response = await fetch("/api/auth/logout", { method: "POST" });
+            if (!response.ok) throw new Error("Unable to log out.");
+            setUser(null);
+            clearLegacyCart();
+            notifyAuthChanged();
+            router.replace("/login");
+            router.refresh();
+        } catch (reason) {
+            console.error("Logout failed:", reason);
+            setAuthError("Logout failed. Please try again.");
+        }
     };
 
     return (
         <nav className="site-nav">
-            <h1 id="logo">
+            <div id="logo">
                 <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>Muncho</Link>
-            </h1>
+            </div>
             <ul id="quicklinks">
                 <li><Link href="/" style={{ color: "#1A1A1A", textDecoration: "none", fontWeight: "bold" }}>Home</Link></li>
                 <li><Link href="/restaurants" style={{ color: "inherit", textDecoration: "none" }}>Restaurants</Link></li>
-                <li><Link href="" style={{ color: "inherit", textDecoration: "none" }}>Offers</Link></li>
-                <li><Link href="" style={{ color: "inherit", textDecoration: "none" }}>About</Link></li>
             </ul>
             <ul id="toolbar">
                 <li className="search-nav-item">
                     <Link href="/search" aria-label="Search restaurants">
-                        <img src="/search.svg" alt="Search" />
+                        <Image src="/search.svg" alt="" width={17} height={17} />
                     </Link>
                 </li>
                 <li className="cart-nav-item"><Link href="/cart">Cart</Link></li>
@@ -69,6 +91,7 @@ export default function Navbar() {
                         </li>
                     )
                 )}
+                {authError && <li className="nav-auth-error" role="status">{authError}</li>}
                 <li className="order-nav-item">
                     <Link href="/restaurants">Order Now</Link>
                 </li>

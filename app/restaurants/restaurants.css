@@ -51,16 +51,29 @@
     box-shadow: 0 18px 36px rgba(228, 119, 39, 0.15);
 }
 
+.restaurant-card-image-frame {
+    position: relative;
+    display: grid;
+    width: calc(100% + 54px);
+    height: 130px;
+    flex: 0 0 auto;
+    place-items: center;
+    overflow: hidden;
+    margin: -27px -27px 5px;
+    border-radius: 24px 24px 0 0;
+    background: linear-gradient(135deg, #d7ead3, #f4d49d);
+}
+
 .restaurant-card-icon {
-    font-size: 32px;
+    font-size: 36px;
 }
 
 .restaurant-card-image {
-    width: calc(100% + 54px);
-    height: 130px;
-    margin: -27px -27px 5px;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    border-radius: 24px 24px 0 0;
 }
 
 .skeleton-card {
@@ -128,7 +141,15 @@
     height: clamp(210px, 32vw, 360px);
     object-fit: cover;
     border-radius: 28px;
+    display: block;
+}
+
+.restaurant-banner-frame {
+    width: 100%;
+    height: clamp(210px, 32vw, 360px);
+    overflow: hidden;
     margin-bottom: 24px;
+    border-radius: 28px;
 }
 
 .restaurant-banner-fallback {
@@ -151,6 +172,22 @@
     object-fit: cover;
     flex-shrink: 0;
     border-radius: 14px;
+}
+
+.dish-image-frame {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    flex: 0 0 auto;
+    overflow: hidden;
+    border-radius: 14px;
+}
+
+.dish-image-frame > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
 }
 
 .dish-image-fallback {
@@ -594,4 +631,73 @@
     .place-order-button { width: 100%; }
     .dashboard-heading, .owner-orders article { align-items: flex-start; flex-direction: column; }
     .order-controls { align-items: flex-start; }
+}
+
+@media (max-width: 480px) {
+    .browse-main {
+        padding: 28px 16px;
+    }
+
+    .restaurant-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .restaurant-card {
+        min-height: 200px;
+        padding: 21px;
+        border-radius: 20px;
+    }
+
+    .restaurant-card-image-frame {
+        width: calc(100% + 42px);
+        margin: -21px -21px 5px;
+    }
+
+    .dish-row {
+        gap: 12px;
+        padding: 13px;
+    }
+
+    .dish-row img,
+    .dish-image-fallback {
+        width: 68px;
+        height: 68px;
+    }
+
+    .dish-image-frame {
+        width: 68px;
+        height: 68px;
+    }
+
+    .dish-row > div:nth-child(2) {
+        min-width: calc(100% - 84px);
+    }
+
+    .dish-actions {
+        padding-left: 0;
+    }
+
+    .checkout-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cart-page-card,
+    .checkout-form-card,
+    .cart-total-card {
+        padding: 18px;
+        border-radius: 18px;
+    }
+
+    .split-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .success-card {
+        padding: 32px 22px;
+    }
+
+    .owner-orders article {
+        padding: 16px;
+    }
 }

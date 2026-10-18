@@ -32,7 +32,23 @@ export default function SearchPage() {
     };
 
     useEffect(() => {
-        runSearch();
+        let active = true;
+        fetch("/api/restaurants")
+            .then(async (response) => {
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Search is unavailable right now.");
+                if (!active) return;
+                setRestaurants(data.restaurants || []);
+                setSearched(true);
+            })
+            .catch((reason: unknown) => {
+                if (!active) return;
+                setError(reason instanceof Error ? reason.message : "Search is unavailable right now.");
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+        return () => { active = false; };
     }, []);
 
     return (

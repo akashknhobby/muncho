@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { notifyAuthChanged } from "../../lib/auth-events";
 import "./page.css";
 
 export default function Login() {
@@ -13,135 +15,86 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
         setError("");
         setLoading(true);
 
         try {
-            const res = await fetch("/api/auth/login", {
+            const response = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password, rememberMe }),
             });
-
-            const data = await res.json();
-            if (!res.ok) {
-                setError(data.error || "Login failed");
-            } else {
-                router.push("/");
-                router.refresh();
+            const data = await response.json();
+            if (!response.ok) {
+                setError(data.error || "Login failed.");
+                return;
             }
-        } catch (err: any) {
-            setError(err?.message || "An unexpected error occurred");
+            notifyAuthChanged();
+            const next = new URLSearchParams(window.location.search).get("next");
+            const destination = next ? new URL(next, window.location.origin) : null;
+            router.replace(
+                destination?.origin === window.location.origin
+                    ? `${destination.pathname}${destination.search}${destination.hash}`
+                    : "/"
+            );
+            router.refresh();
+        } catch (reason) {
+            setError(reason instanceof Error ? reason.message : "Unable to log in.");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <main>
-            <div className="fo">
-                <p style={{ fontWeight: "bold", fontSize: "24px", margin: "0 0 10px 0" }}>Muncho</p>
-                <p style={{ fontSize: "20px", fontWeight: 600, margin: "0 0 6px 0" }}>Welcome back!</p>
-                <p style={{ color: "#666", marginBottom: "20px" }}>Login to continue ordering delicious food.</p>
-
-                {error && (
-                    <div style={{ color: "#e11d48", backgroundColor: "#ffe4e6", padding: "10px 14px", borderRadius: "8px", marginBottom: "16px", fontSize: "14px" }}>
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px", minWidth: "280px" }}>
-                    <div>
-                        <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#1F2523", marginBottom: "6px" }}>
-                            Email
-                        </label>
+        <main className="auth-main">
+            <section className="auth-panel">
+                <p className="auth-brand">Muncho</p>
+                <h1>Welcome back!</h1>
+                <p className="auth-intro">Log in to continue ordering delicious food.</p>
+                {error && <p className="auth-error" role="alert">{error}</p>}
+                <form className="auth-form" onSubmit={handleSubmit}>
+                    <label className="auth-field">
+                        Email
                         <input
                             type="email"
+                            autoComplete="email"
                             required
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(event) => setEmail(event.target.value)}
                             placeholder="Enter your email"
-                            style={{
-                                width: "100%",
-                                padding: "12px",
-                                borderRadius: "8px",
-                                border: "1px solid #ccc",
-                                fontSize: "14px",
-                                boxSizing: "border-box"
-                            }}
                         />
-                    </div>
-
-                    <div>
-                        <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#1F2523", marginBottom: "6px" }}>
-                            Password
-                        </label>
+                    </label>
+                    <label className="auth-field">
+                        Password
                         <input
                             type="password"
+                            autoComplete="current-password"
                             required
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(event) => setPassword(event.target.value)}
                             placeholder="Enter your password"
-                            style={{
-                                width: "100%",
-                                padding: "12px",
-                                borderRadius: "8px",
-                                border: "1px solid #ccc",
-                                fontSize: "14px",
-                                boxSizing: "border-box"
-                            }}
                         />
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    </label>
+                    <label className="auth-checkbox">
                         <input
                             type="checkbox"
-                            id="rememberMe"
                             checked={rememberMe}
-                            onChange={(e) => setRememberMe(e.target.checked)}
-                            style={{ width: "16px", height: "16px", cursor: "pointer", accentColor: "#FF9E4F" }}
+                            onChange={(event) => setRememberMe(event.target.checked)}
                         />
-                        <label htmlFor="rememberMe" style={{ fontSize: "13px", color: "#444", cursor: "pointer" }}>
-                            Remember me
-                        </label>
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        style={{
-                            marginTop: "8px",
-                            padding: "12px",
-                            backgroundColor: "#FF9E4F",
-                            color: "white",
-                            fontWeight: "bold",
-                            border: "none",
-                            borderRadius: "8px",
-                            cursor: loading ? "not-allowed" : "pointer"
-                        }}
-                    >
-                        {loading ? "Logging in..." : "Log In"}
+                        Remember me
+                    </label>
+                    <button className="auth-submit" type="submit" disabled={loading}>
+                        {loading ? "Logging in..." : "Log in"}
                     </button>
-
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", marginTop: "12px", fontSize: "14px" }}>
-                        <span style={{ color: "#666" }}>Don't have an account?</span>
-                        <Link
-                            href="/signup"
-                            style={{
-                                color: "#FF9E4F",
-                                fontWeight: 600,
-                                textDecoration: "none"
-                            }}
-                        >
-                            Sign up instead
-                        </Link>
-                    </div>
                 </form>
-            </div>
-            <div className="banner">
-                <img src="/burger.png" alt="Burger Banner" />
+                <p className="auth-footnote">
+                    Don&apos;t have an account? <Link href="/signup">Sign up instead</Link>
+                </p>
+            </section>
+            <div className="auth-banner">
+                <Image src="/burger.png" alt="Freshly prepared burger" fill sizes="(max-width: 760px) 0vw, 45vw" />
             </div>
         </main>
     );

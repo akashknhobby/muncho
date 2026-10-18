@@ -1,4 +1,8 @@
-export default function Input(props: any, x: any) {
+type InputProps = {
+  txt: string;
+};
+
+export default function Input({ txt }: InputProps) {
   const pStyle = {
     color: '#1F2523',
     fontFamily: 'Inter, sans-serif',
@@ -23,8 +27,8 @@ export default function Input(props: any, x: any) {
 
   return (
     <>
-      <p style={pStyle}>{props.txt}</p>
-      <input type="text" placeholder={`Enter your ${props.txt}`} style={istyle} />
+      <p style={pStyle}>{txt}</p>
+      <input type="text" placeholder={`Enter your ${txt}`} style={istyle} />
     </>
   );
 }

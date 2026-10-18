@@ -1,23 +1,16 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import type { Metadata } from "next";
 import "./globals.css";
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
-  const [mounted, setMounted] = useState(false);
+export const metadata: Metadata = {
+  title: "Muncho | Food delivered fresh",
+  description: "Discover local restaurants and order freshly prepared meals with Muncho.",
+};
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`h-full antialiased`}
-    >
-      <>
-      <body>{mounted ? children : null}</body>
-      </>
+    <html lang="en">
+      <body>{children}</body>
     </html>
   );
 }

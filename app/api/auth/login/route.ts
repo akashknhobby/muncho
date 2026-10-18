@@ -70,10 +70,10 @@ export async function POST(request: Request) {
         });
 
         return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Login error:", error);
         return NextResponse.json(
-            { error: error?.message || "Internal server error" },
+            { error: "Unable to log in right now. Please try again." },
             { status: 500 }
         );
     }

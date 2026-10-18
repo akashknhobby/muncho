@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -14,162 +15,97 @@ export default function Signup() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
         setError("");
 
         if (!agreeTerms) {
-            setError("Please accept the Terms and conditions to proceed");
+            setError("Please accept the terms and conditions to proceed.");
             return;
         }
 
         setLoading(true);
-
         try {
-            const res = await fetch("/api/auth/signup", {
+            const response = await fetch("/api/auth/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ fullName, email, password }),
             });
-
-            const data = await res.json();
-            if (!res.ok) {
-                setError(data.error || "Signup failed");
-            } else {
-                router.push("/");
-                router.refresh();
+            const data = await response.json();
+            if (!response.ok) {
+                setError(data.error || "Signup failed.");
+                return;
             }
-        } catch (err: any) {
-            setError(err?.message || "An unexpected error occurred");
+            router.push("/");
+            router.refresh();
+        } catch (reason) {
+            setError(reason instanceof Error ? reason.message : "Unable to sign up.");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <main>
-            <div className="fo">
-                <p style={{ fontWeight: "bold", fontSize: "24px", margin: "0 0 10px 0" }}>Muncho</p>
-                <p style={{ fontSize: "20px", fontWeight: 600, margin: "0 0 6px 0" }}>Create an account</p>
-                <p style={{ color: "#666", marginBottom: "20px" }}>Sign up to start ordering delicious food.</p>
-
-                {error && (
-                    <div style={{ color: "#e11d48", backgroundColor: "#ffe4e6", padding: "10px 14px", borderRadius: "8px", marginBottom: "16px", fontSize: "14px" }}>
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px", minWidth: "280px" }}>
-                    <div>
-                        <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#1F2523", marginBottom: "6px" }}>
-                            Full Name
-                        </label>
+        <main className="auth-main">
+            <section className="auth-panel">
+                <p className="auth-brand">Muncho</p>
+                <h1>Create an account</h1>
+                <p className="auth-intro">Sign up to start ordering delicious food.</p>
+                {error && <p className="auth-error" role="alert">{error}</p>}
+                <form className="auth-form" onSubmit={handleSubmit}>
+                    <label className="auth-field">
+                        Full name
                         <input
                             type="text"
+                            autoComplete="name"
                             required
+                            minLength={2}
                             value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
+                            onChange={(event) => setFullName(event.target.value)}
                             placeholder="Enter your full name"
-                            style={{
-                                width: "100%",
-                                padding: "12px",
-                                borderRadius: "8px",
-                                border: "1px solid #ccc",
-                                fontSize: "14px",
-                                boxSizing: "border-box"
-                            }}
                         />
-                    </div>
-
-                    <div>
-                        <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#1F2523", marginBottom: "6px" }}>
-                            Email
-                        </label>
+                    </label>
+                    <label className="auth-field">
+                        Email
                         <input
                             type="email"
+                            autoComplete="email"
                             required
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(event) => setEmail(event.target.value)}
                             placeholder="Enter your email"
-                            style={{
-                                width: "100%",
-                                padding: "12px",
-                                borderRadius: "8px",
-                                border: "1px solid #ccc",
-                                fontSize: "14px",
-                                boxSizing: "border-box"
-                            }}
                         />
-                    </div>
-
-                    <div>
-                        <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#1F2523", marginBottom: "6px" }}>
-                            Password
-                        </label>
+                    </label>
+                    <label className="auth-field">
+                        Password
                         <input
                             type="password"
+                            autoComplete="new-password"
                             required
+                            minLength={6}
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(event) => setPassword(event.target.value)}
                             placeholder="Create a password"
-                            style={{
-                                width: "100%",
-                                padding: "12px",
-                                borderRadius: "8px",
-                                border: "1px solid #ccc",
-                                fontSize: "14px",
-                                boxSizing: "border-box"
-                            }}
                         />
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    </label>
+                    <label className="auth-checkbox">
                         <input
                             type="checkbox"
-                            id="terms"
                             checked={agreeTerms}
-                            onChange={(e) => setAgreeTerms(e.target.checked)}
-                            style={{ width: "16px", height: "16px", cursor: "pointer", accentColor: "#FF9E4F" }}
+                            onChange={(event) => setAgreeTerms(event.target.checked)}
                         />
-                        <label htmlFor="terms" style={{ fontSize: "13px", color: "#444", cursor: "pointer" }}>
-                            Terms and conditions
-                        </label>
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        style={{
-                            marginTop: "8px",
-                            padding: "12px",
-                            backgroundColor: "#FF9E4F",
-                            color: "white",
-                            fontWeight: "bold",
-                            border: "none",
-                            borderRadius: "8px",
-                            cursor: loading ? "not-allowed" : "pointer"
-                        }}
-                    >
-                        {loading ? "Signing up..." : "Sign Up"}
+                        I agree to the terms and conditions
+                    </label>
+                    <button className="auth-submit" type="submit" disabled={loading}>
+                        {loading ? "Signing up..." : "Sign up"}
                     </button>
-
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", marginTop: "12px", fontSize: "14px" }}>
-                        <span style={{ color: "#666" }}>Already have an account?</span>
-                        <Link
-                            href="/login"
-                            style={{
-                                color: "#FF9E4F",
-                                fontWeight: 600,
-                                textDecoration: "none"
-                            }}
-                        >
-                            Log in instead
-                        </Link>
-                    </div>
                 </form>
-            </div>
-            <div className="banner">
-                <img src="/burger.png" alt="Burger Banner" />
+                <p className="auth-footnote">
+                    Already have an account? <Link href="/login">Log in instead</Link>
+                </p>
+            </section>
+            <div className="auth-banner">
+                <Image src="/burger.png" alt="Freshly prepared burger" fill sizes="(max-width: 760px) 0vw, 45vw" />
             </div>
         </main>
     );

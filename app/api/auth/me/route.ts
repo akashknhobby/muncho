@@ -23,7 +23,11 @@ export async function GET() {
                 fullName: decoded.fullName,
             },
         });
-    } catch (error) {
-        return NextResponse.json({ user: null });
+    } catch (error: unknown) {
+        console.error("Current user lookup error:", error);
+        return NextResponse.json(
+            { error: "Unable to verify the current session" },
+            { status: 500 }
+        );
     }
 }

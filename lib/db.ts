@@ -14,9 +14,9 @@ if (process.env.NODE_ENV !== "production") {
     globalForPg.pool = pool;
 }
 
-export async function query<T extends QueryResultRow = any>(
+export async function query<T extends QueryResultRow = QueryResultRow>(
     text: string,
-    params?: any[]
+    params?: unknown[]
 ): Promise<QueryResult<T>> {
     return pool.query<T>(text, params);
 }

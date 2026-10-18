@@ -1,12 +1,12 @@
 .profile-main {
     background-color: #fff9d9;
     flex: 1;
-    min-height: 0;
+    min-width: 0;
     display: flex;
     align-items: stretch;
     justify-content: flex-start;
-    gap: 32px;
-    padding: 32px 40px;
+    gap: clamp(20px, 3vw, 40px);
+    padding: clamp(20px, 3vw, 40px);
     box-sizing: border-box;
 }
 
@@ -15,7 +15,7 @@
     margin: 0;
     box-sizing: border-box;
     display: flex;
-    width: 235px;
+    width: clamp(200px, 20vw, 250px);
     padding: 10px;
     flex-direction: column;
     align-items: flex-start;
@@ -39,8 +39,9 @@
 
 .profile-sidebar li a {
     display: flex;
+    min-width: 0;
     padding: 15px 16px;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     gap: 10px;
     flex: 1 0 0;
@@ -54,20 +55,29 @@
     font-style: normal;
     font-weight: 700;
     line-height: normal;
+    border-radius: 14px;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+
+.profile-sidebar li a:hover,
+.profile-sidebar li a[aria-current="page"] {
+    background: #fff;
+    color: #c65d16;
 }
 
 .profile-content {
     flex: 1;
-    min-height: 0;
-    overflow-y: auto;
+    min-width: 0;
+    min-height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 28px;
+    padding: clamp(16px, 2vw, 28px);
     box-sizing: border-box;
 }
 
 .restaurant-onboarding {
-    width: min(100%, 760px);
+    width: min(100%, 880px);
+    margin: 0 auto;
 }
 
 .restaurant-onboarding h1 {
@@ -82,6 +92,7 @@
 }
 
 .onboarding-form {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -105,6 +116,8 @@
 
 .onboarding-form input,
 .onboarding-form select {
+    width: 100%;
+    min-width: 0;
     border: 1px solid #d9dfd7;
     border-radius: 10px;
     padding: 11px;
@@ -125,7 +138,7 @@
 
 .coordinate-fields {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
 }
 
@@ -157,7 +170,8 @@
 }
 
 .saved-page {
-    width: min(100%, 760px);
+    width: min(100%, 880px);
+    margin: 0 auto;
 }
 
 .profile-lead {
@@ -186,7 +200,33 @@
 }
 
 .profile-form {
-    max-width: 560px;
+    max-width: 640px;
+}
+
+.owner-dashboard {
+    width: min(100%, 1040px);
+    margin: 0 auto;
+}
+
+.owner-dashboard > h1,
+.profile-content > div > h1 {
+    color: #2a241b;
+    letter-spacing: -0.04em;
+}
+
+.owner-orders article > div:first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.owner-orders article > div:last-child {
+    flex: 0 0 auto;
+}
+
+.onboarding-form button,
+.owner-orders button,
+.primary-button {
+    min-height: 44px;
 }
 
 @media (max-width: 760px) {
@@ -200,8 +240,67 @@
 }
 
 @media (max-width: 800px) {
-    .profile-main { flex-direction: column; padding: 20px; overflow-y: auto; }
-    .profile-sidebar { width: 100%; flex-direction: row; overflow-x: auto; }
-    .profile-sidebar li { min-width: max-content; }
-    .profile-content { overflow: visible; padding: 12px 0; }
+    .profile-main {
+        flex-direction: column;
+        gap: 20px;
+        padding: clamp(16px, 4vw, 28px);
+    }
+
+    .profile-sidebar {
+        display: grid;
+        width: 100%;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 110px), 1fr));
+        gap: 6px;
+        padding: 8px;
+    }
+
+    .profile-sidebar li {
+        min-width: 0;
+    }
+
+    .profile-sidebar li a {
+        min-height: 44px;
+        justify-content: center;
+        padding: 10px 8px;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    .profile-content {
+        min-height: auto;
+        padding: 0;
+    }
+
+    .onboarding-form {
+        padding: clamp(16px, 4vw, 25px);
+    }
+
+    .dashboard-heading {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .coordinate-fields,
+    .split-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .profile-main {
+        gap: 16px;
+    }
+
+    .owner-dashboard h1 {
+        font-size: clamp(28px, 8vw, 38px);
+        overflow-wrap: anywhere;
+    }
+
+    .dashboard-heading,
+    .owner-orders article {
+        gap: 14px;
+    }
+
+    .order-count {
+        white-space: normal;
+    }
 }

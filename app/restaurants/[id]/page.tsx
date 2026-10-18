@@ -1,11 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import "../restaurants.css";
 import dynamic from "next/dynamic";
-import { readCart, writeCart, CartItem } from "../../cart/cart-storage";
+import { clearLegacyCart, readCart, writeCart, CartItem } from "../../cart/cart-storage";
 
 const LocationPicker = dynamic(() => import("../../profile/restaurants/LocationPicker"), { ssr: false });
 type Dish = { id: number; name: string; price: string; imageUrl?: string };
@@ -18,40 +20,64 @@ export default function RestaurantDetailPage({ params }: { params: Promise<{ id:
     const [search, setSearch] = useState("");
     const [cartOpen, setCartOpen] = useState(false);
     const [cartReady, setCartReady] = useState(false);
+    const [bannerFailed, setBannerFailed] = useState(false);
+    const [userId, setUserId] = useState<number | null>(null);
+    const router = useRouter();
 
     useEffect(() => {
-        params.then(({ id }) =>
-            fetch(`/api/restaurants/${id}`)
-                .then(async (response) => {
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(data.error || "Unable to load restaurant.");
-                    setRestaurant(data.restaurant);
-                })
-                .catch((reason: Error) => setError(reason.message))
-        );
+        let active = true;
+        const controller = new AbortController();
+        const loadRestaurant = async () => {
+            try {
+                const { id } = await params;
+                if (!active) return;
+                setRestaurant(null);
+                setCart({});
+                setCartReady(false);
+                setUserId(null);
+                const [response, sessionResponse] = await Promise.all([
+                    fetch(`/api/restaurants/${id}`, { signal: controller.signal }),
+                    fetch("/api/auth/me", { signal: controller.signal }),
+                ]);
+                const [data, session] = await Promise.all([
+                    response.json(),
+                    sessionResponse.json(),
+                ]);
+                if (!response.ok) throw new Error(data.error || "Unable to load restaurant.");
+                if (!sessionResponse.ok) throw new Error(session.error || "Unable to check your login status.");
+                if (!active) return;
+                const loadedRestaurant: Restaurant = data.restaurant;
+                const currentUserId = typeof session.user?.id === "number" ? session.user.id : null;
+                setUserId(currentUserId);
+                if (currentUserId === null) clearLegacyCart();
+                const savedCart = currentUserId === null ? null : readCart(currentUserId);
+                if (savedCart?.restaurantId === loadedRestaurant.id) {
+                    setCart(Object.fromEntries(savedCart.items.map((item) => [item.dishId, item.quantity])));
+                } else {
+                    setCart({});
+                }
+                setRestaurant(loadedRestaurant);
+                setCartReady(true);
+            } catch (reason) {
+                if (!active || (reason instanceof Error && reason.name === "AbortError")) return;
+                setError(reason instanceof Error ? reason.message : "Unable to load restaurant.");
+            }
+        };
+        void loadRestaurant();
+        return () => {
+            active = false;
+            controller.abort();
+        };
     }, [params]);
-
-    useEffect(() => {
-        if (!restaurant) return;
-        try {
-        const savedCart = readCart();
-        if (savedCart?.restaurantId === restaurant.id) {
-            setCart(Object.fromEntries(savedCart.items.map((item) => [item.dishId, item.quantity])));
-        }
-        } catch {
-            setError("Your saved cart could not be restored.");
-        } finally {
-            setCartReady(true);
-        }
-    }, [restaurant]);
 
     useEffect(() => {
         if (!restaurant || !cartReady) return;
         const items: CartItem[] = restaurant.dishes
             .filter((dish) => cart[dish.id])
             .map((dish) => ({ dishId: dish.id, name: dish.name, price: Number(dish.price), imageUrl: dish.imageUrl, quantity: cart[dish.id] }));
-        writeCart({ restaurantId: restaurant.id, restaurantName: restaurant.name, items });
-    }, [cart, cartReady, restaurant]);
+        if (userId === null || items.length === 0) return;
+        writeCart(userId, { restaurantId: restaurant.id, restaurantName: restaurant.name, items });
+    }, [cart, cartReady, restaurant, userId]);
 
     const visibleDishes = restaurant?.dishes.filter((dish) => dish.name.toLowerCase().includes(search.toLowerCase())) || [];
     const cartItems = restaurant?.dishes.filter((dish) => cart[dish.id]) || [];
@@ -59,21 +85,27 @@ export default function RestaurantDetailPage({ params }: { params: Promise<{ id:
     const total = cartItems.reduce((sum, dish) => sum + Number(dish.price) * cart[dish.id], 0);
 
     const changeQuantity = (dishId: number, delta: number) => {
-        setCart((current) => {
-            const nextQuantity = (current[dishId] || 0) + delta;
-            const next = { ...current };
-            if (nextQuantity <= 0) delete next[dishId];
-            else next[dishId] = nextQuantity;
-            return next;
-        });
+        if (!cartReady) return;
+        if (userId === null) {
+            const returnTo = `${window.location.pathname}${window.location.search}`;
+            router.push(`/login?next=${encodeURIComponent(returnTo)}`);
+            return;
+        }
+        const nextQuantity = (cart[dishId] || 0) + delta;
+        const next = { ...cart };
+        if (nextQuantity <= 0) delete next[dishId];
+        else next[dishId] = nextQuantity;
+        setCart(next);
+        if (Object.keys(next).length === 0) writeCart(userId, null);
     };
 
     const clearCart = () => {
         setCart({});
         setCartOpen(false);
+        if (userId !== null) writeCart(userId, null);
     };
 
-    const openCart = () => { window.location.href = "/cart"; };
+    const openCart = () => router.push("/cart");
 
     return (
         <div className="app">
@@ -85,19 +117,43 @@ export default function RestaurantDetailPage({ params }: { params: Promise<{ id:
                     {!restaurant && !error && <p>Loading restaurant...</p>}
                     {restaurant && (
                         <>
-                            {restaurant.imageUrl ? <img className="restaurant-banner" src={restaurant.imageUrl} alt="" /> : <div className="restaurant-banner restaurant-banner-fallback">🍽️</div>}
+                            <div className="restaurant-banner-frame">
+                                {restaurant.imageUrl && !bannerFailed ? (
+                                    <Image
+                                        className="restaurant-banner"
+                                        src={restaurant.imageUrl}
+                                        alt=""
+                                        width={1200}
+                                        height={360}
+                                        unoptimized
+                                        onError={() => setBannerFailed(true)}
+                                    />
+                                ) : <div className="restaurant-banner restaurant-banner-fallback">🍽️</div>}
+                            </div>
                             <h1>{restaurant.name}</h1>
                             <p className="browse-intro">{restaurant.location}</p>
-                            {restaurant.latitude && restaurant.longitude && <LocationPicker latitude={String(restaurant.latitude)} longitude={String(restaurant.longitude)} readOnly onSelect={() => undefined} />}
+                            {restaurant.latitude != null && restaurant.longitude != null && <LocationPicker latitude={String(restaurant.latitude)} longitude={String(restaurant.longitude)} readOnly onSelect={() => undefined} />}
                             <h2 className="menu-heading">Menu</h2>
-                            <input className="dish-search" placeholder="Search this menu..." value={search} onChange={(event) => setSearch(event.target.value)} />
+                            <input className="dish-search" aria-label="Search this menu" placeholder="Search this menu..." value={search} onChange={(event) => setSearch(event.target.value)} />
                             {restaurant.dishes.length === 0 ? (
                                 <p>This restaurant has not added any dishes yet.</p>
                             ) : (
                                 <div className="menu-list">
                                     {visibleDishes.map((dish) => (
                                         <article className="dish-row" key={dish.id}>
-                                            {dish.imageUrl ? <img src={dish.imageUrl} alt="" /> : <div className="dish-image-fallback">🥘</div>}
+                                            <div className="dish-image-frame">
+                                                <div className="dish-image-fallback">🥘</div>
+                                                {dish.imageUrl && (
+                                                    <Image
+                                                        src={dish.imageUrl}
+                                                        alt=""
+                                                        width={96}
+                                                        height={96}
+                                                        unoptimized
+                                                        onError={(event) => { event.currentTarget.style.display = "none"; }}
+                                                    />
+                                                )}
+                                            </div>
                                             <div>
                                                 <h2>{dish.name}</h2>
                                                 <p>Freshly prepared at {restaurant.name}</p>
@@ -111,7 +167,7 @@ export default function RestaurantDetailPage({ params }: { params: Promise<{ id:
                                                         <button type="button" aria-label={`Add one ${dish.name}`} onClick={() => changeQuantity(dish.id, 1)}>+</button>
                                                     </div>
                                                 ) : (
-                                                    <button className="add-dish-button" type="button" onClick={() => changeQuantity(dish.id, 1)}>Add</button>
+                                                    <button className="add-dish-button" type="button" onClick={() => changeQuantity(dish.id, 1)} disabled={!cartReady}>{cartReady && userId === null ? "Log in to add" : "Add"}</button>
                                                 )}
                                             </div>
                                         </article>
