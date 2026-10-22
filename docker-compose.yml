@@ -1,0 +1,16 @@
+services:
+  muncho-db:
+    image: postgres:16-alpine
+    container_name: muncho-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: munchodb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - muncho-pgdata:/var/lib/postgresql/data
+
+volumes:
+  muncho-pgdata:
